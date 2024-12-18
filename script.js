@@ -99,14 +99,385 @@ function handleSubmit(event) {
     document.getElementById('result-page').classList.add('active');
 }
 
-function goToInputPage() {
+/*function goToInputPage() {
+    const autoTempCheckbox = document.getElementById('auto-temp');
+    const locationInput = document.getElementById('location');
+    const temperatureInput = document.getElementById('temperature');
+
+    if (autoTempCheckbox.checked && locationInput.value) {
+        // Fetch and set the temperature based on location (replace with actual API call)
+        fetchTemperatureForLocation(locationInput.value)
+            .then(temperature => {
+                if (temperature !== null) {
+                    temperatureInput.value = temperature;
+                }
+            })
+            .catch(error => {
+                console.error("Error fetching temperature:", error);
+                alert("Could not fetch temperature for the given location.");
+            });
+    }
     document.getElementById('result-page').classList.remove('active');
     document.getElementById('sign-in-page').classList.remove('active');
     document.getElementById('input-page').classList.add('active');
 }
+*/
 
 // Initialize the first page as active
 document.getElementById('sign-in-page').classList.add('active');
 
 // Add event listener to the form submission
 document.getElementById('data-form').addEventListener('submit', handleSubmit);
+
+// Function to get the device location
+function getDeviceLocation() {
+    return new Promise((resolve, reject) => {
+      if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(
+          (position) => {
+            resolve({
+              latitude: position.coords.latitude,
+              longitude: position.coords.longitude,
+            });
+          },
+          (error) => {
+            reject(error); // Reject the promise on error
+          }
+        );
+      } else {
+        reject(new Error("Geolocation is not supported by this browser.")); // Reject if geolocation is not supported
+      }
+    });
+  }
+
+// Function to show the position in the location input
+function showPosition(position) {
+    const locationInput = document.getElementById("location");
+    locationInput.value = `${position.coords.latitude}, ${position.coords.longitude}`;
+}
+
+// Function to handle geolocation errors
+function showError(error) {
+    switch(error.code) {
+        case error.PERMISSION_DENIED:
+            alert("User denied the request for Geolocation.");
+            break;
+        case error.POSITION_UNAVAILABLE:
+            alert("Location information is unavailable.");
+            break;
+        case error.TIMEOUT:
+            alert("The request to get user location timed out.");
+            break;
+        case error.UNKNOWN_ERROR:
+            alert("An unknown error occurred.");
+            break;
+    }
+}
+
+const geminiApiKey = "AIzaSyDgrr-I8EnJZ4YBTOBj-WDQP68drDHGT3I"; 
+
+async function fetchMedianTemperatureGemini(latitude, longitude) {
+    const prompt = `Convert this location to its city name: ${latitude}, ${longitude}. What is the average yearly median temperature in Celsius for that location? Respond only with the numerical value without the unit.`;
+  
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`;
+  
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt,
+            }],
+          }],
+        }),
+      });
+  
+      const data = await response.json();
+
+      console.log("Gemini API Response:", data);
+
+      if (data.error) {
+        throw new Error(`Gemini API Error: ${data.error.message} (Code: ${data.error.code})`);
+      }
+  
+      if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.length > 0) {
+        const temperature = parseFloat(data.candidates[0].content.parts[0].text);
+        if (!isNaN(temperature)) {
+          return temperature;
+        } else {
+          throw new Error("Invalid temperature value received from Gemini API.");
+        }
+      } else {
+        throw new Error("Invalid response format from Gemini API.");
+      }
+    } catch (error) {
+      console.error("Error fetching temperature from Gemini:", error);
+      throw new Error("Failed to fetch temperature from Gemini API.");
+    }
+  }
+
+  async function fetchAverageRainfallGemini(latitude, longitude) {
+    const prompt = `Convert this location to its city name: ${latitude}, ${longitude}. What is the average yearly rainfall in mm for the city at that location? Respond only with the numerical value without units.`;
+  
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`;
+  
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          contents: [{
+            parts: [{
+              text: prompt,
+            }],
+          }],
+        }),
+      });
+  
+      const data = await response.json();
+
+      console.log("Gemini API Response:", data);
+
+      if (data.error) {
+        throw new Error(`Gemini API Error: ${data.error.message} (Code: ${data.error.code})`);
+      }
+  
+      if (data.candidates && data.candidates.length > 0 && data.candidates[0].content && data.candidates[0].content.parts && data.candidates[0].content.parts.length > 0) {
+        const rainfall = parseFloat(data.candidates[0].content.parts[0].text);
+        if (!isNaN(rainfall)) {
+          return rainfall;
+        } else {
+          throw new Error("Invalid rainfall value received from Gemini API.");
+        }
+      } else {
+        throw new Error("Invalid response format from Gemini API.");
+      }
+    } catch (error) {
+      console.error("Error fetching rainfall from Gemini:", error);
+      throw new Error("Failed to fetch rainfall from Gemini API.");
+    }
+  }
+
+  async function fetchAverageHumidityGemini(latitude, longitude) {
+    const prompt = `Convert this location to its city name: ${latitude}, ${longitude} without outputting the name. What is the average yearly humidity percentage for the city at that location? Respond with only the numerical value.`;
+  
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${geminiApiKey}`;
+  
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
+        }),
+      });
+  
+      const data = await response.json();
+
+      console.log("Gemini API Response:", data);
+
+      if (data.error) {
+        throw new Error(`Gemini API Error: ${data.error.message} (Code: ${data.error.code})`);
+      }
+  
+      if (
+        data.candidates &&
+        data.candidates.length > 0 &&
+        data.candidates[0].content &&
+        data.candidates[0].content.parts &&
+        data.candidates[0].content.parts.length > 0
+      ) {
+        const humidity = parseFloat(data.candidates[0].content.parts[0].text);
+        if (!isNaN(humidity)) {
+          return humidity;
+        } else {
+          throw new Error("Invalid humidity value received from Gemini API.");
+        }
+      } else {
+        throw new Error("Invalid response format from Gemini API.");
+      }
+    } catch (error) {
+      console.error("Error fetching humidity from Gemini:", error);
+      throw new Error("Failed to fetch humidity from Gemini API.");
+    }
+  }
+
+  async function geocodeLocation(location) {
+    const prompt = `What are the coordinates of ${location}? Respond only in this format: latitude, longitude. Respond with only the numerical values separated by a comma.`;
+  
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiApiKey}`;
+  
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  text: prompt,
+                },
+              ],
+            },
+          ],
+        }),
+      });
+  
+      const data = await response.json();
+
+      console.log("Gemini API Response:", data);
+
+      if (data.error) {
+        throw new Error(`Gemini API Error: ${data.error.message} (Code: ${data.error.code})`);
+      }
+  
+      if (
+        data.candidates &&
+        data.candidates.length > 0 &&
+        data.candidates[0].content &&
+        data.candidates[0].content.parts &&
+        data.candidates[0].content.parts.length > 0
+      ) {
+        const values = data.candidates[0].content.parts[0].text.split(",");
+        latitude = values[0].trim();
+        longitude = values[1].trim();
+        if (!isNaN(latitude) || !isNaN(longitude)) {
+          return {
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude),
+          };
+        } else {
+          throw new Error("Invalid coordinate values received from Gemini API.");
+        }
+      } else {
+        throw new Error("Invalid response format from Gemini API.");
+      }
+    } catch (error) {
+      console.error("Error fetching coordinates from Gemini:", error);
+      throw new Error("Failed to fetch coordinates from Gemini API.");
+    }
+  }
+
+// Modified goToInputPage function
+function goToInputPage() {
+    document.getElementById("result-page").classList.remove("active");
+    document.getElementById("sign-in-page").classList.remove("active");
+    document.getElementById("input-page").classList.add("active");
+  }
+  
+  // Event listener for "Get Temperature Automatically" button
+  document.getElementById("get-temp-btn").addEventListener("click", async () => {
+    const locationInput = document.getElementById("location");
+    const temperatureInput = document.getElementById("temperature");
+  
+    try {
+      let coordinates;
+      if (locationInput.value === "USE_DEVICE_LOCATION") {
+        coordinates = await getDeviceLocation();
+      } else {
+        coordinates = await geocodeLocation(locationInput.value);
+      }
+  
+      const medianTemperature = await fetchMedianTemperatureGemini(
+        coordinates.latitude,
+        coordinates.longitude
+      );
+      
+      temperatureInput.value = medianTemperature.toFixed(1);
+    } catch (error) {
+      console.error("Error:", error);
+      alert(`Error: ${error.message}`);
+    }
+  });
+// Add event listener to the "Use Device Location" button
+//document.getElementById("use-location-btn").addEventListener("click", getDeviceLocation);
+
+document.getElementById("use-location-btn").addEventListener("click", () => {
+    const locationInput = document.getElementById("location");
+    // Set a special value to indicate that device location should be used
+    locationInput.value = "USE_DEVICE_LOCATION";
+  });
+
+// Placeholder function to simulate fetching temperature from an API
+function fetchTemperatureForLocation(location) {
+    // Replace this with an actual API call to a weather service
+    // You might need to convert the location to latitude and longitude first
+    // This is a placeholder that returns a random temperature between 15 and 35
+    // apikey - 81a626ab5d6eda8686c3f2b8415ce984
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            const avgTemperature = Math.floor(Math.random() * (35 - 15 + 1)) + 15;
+            resolve(avgTemperature);
+        }, 500); // Simulate a small delay
+    });
+}
+
+document.getElementById("get-rainfall-btn").addEventListener("click", async () => {
+    const locationInput = document.getElementById("location");
+    const rainfallInput = document.getElementById("rainfall");
+  
+    try {
+      let coordinates;
+      if (locationInput.value === "USE_DEVICE_LOCATION") {
+        coordinates = await getDeviceLocation();
+      } else {
+        coordinates = await geocodeLocation(locationInput.value);
+      }
+  
+      const averageRainfall = await fetchAverageRainfallGemini(
+        coordinates.latitude,
+        coordinates.longitude
+      );
+      
+      rainfallInput.value = averageRainfall.toFixed(1); // Display with 1 decimal place
+    } catch (error) {
+      console.error("Error:", error);
+      alert(`Error: ${error.message}`);
+    }
+  });
+
+  document
+  .getElementById("get-humidity-btn")
+  .addEventListener("click", async () => {
+    const locationInput = document.getElementById("location");
+    const humidityInput = document.getElementById("humidity");
+
+    try {
+      let coordinates;
+      if (locationInput.value === "USE_DEVICE_LOCATION") {
+        coordinates = await getDeviceLocation();
+      } else {
+        coordinates = await geocodeLocation(locationInput.value);
+      }
+
+      const averageHumidity = await fetchAverageHumidityGemini(
+        coordinates.latitude,
+        coordinates.longitude
+      );
+
+      humidityInput.value = averageHumidity.toFixed(1); // Display with 1 decimal place
+    } catch (error) {
+      console.error("Error fetching humidity:", error);
+      alert(`Error: ${error.message}`);
+    }
+  });
+

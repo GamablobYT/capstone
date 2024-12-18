@@ -86,3 +86,40 @@ figcaption {
     font-size: 1.2em;
     color: #333;
 }
+
+.location-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.location-container label {
+    flex-shrink: 0; /* Prevent label from shrinking */
+}
+
+.location-container input {
+    flex-grow: 1; /* Allow input to take available space */
+}
+
+
+.checkbox-container{
+    text-align: left;
+}
+
+/* Styles for the new container */
+.input-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 10px; /* Space between input groups */
+}
+
+.input-button-container {
+    /*padding: 5px 10px; */
+    font-size: 12px;
+    /*margin-top: 5px;  /* Space between input and button */
+    margin-bottom: 10px; /* Space below the button */
+}
