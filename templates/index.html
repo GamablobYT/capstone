@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Capstone Project</title>
+    <link rel="stylesheet" href="static/styles.css">
+</head>
+<body>
+    <div class="header">
+        <h1>Precision Fruit Cultivation</h1>
+        <h3>Capstone group 229</h3>
+    </div>
+    <div class="container">
+        <div id="sign-in-page" class="page">
+            <h2>Sign In</h2>
+            <input type="text" placeholder="Enter your name" id="username">
+            <div class="location-container">
+                <input type="text" placeholder="Enter your location" id="location">
+                <button type="button" id="use-location-btn">Use Device Location</button>
+            </div>
+            <button onclick="goToInputPage()">Sign In</button>
+        </div>
+
+        <div id="input-page" class="page hidden">
+            <h2>Enter Soil and Weather Data</h2>
+            <form id="data-form">
+                <label for="ph">Soil pH:</label>
+                <input type="number" id="ph" name="ph" step="any" required>
+        
+                <label for="nitrogen">Nitrogen Content:</label>
+                <input type="number" id="nitrogen" name="N" step="any" required>
+        
+                <label for="phosphorus">Phosphorus Content:</label>
+                <input type="number" id="phosphorus" name="P" setp="any" required>
+        
+                <label for="potassium">Potassium Content:</label>
+                <input type="number" id="potassium" name="K" step="any" required>
+        
+                <label for="rainfall">Avg. Rainfall (mm):</label>
+                <div class="input-container">
+                    <input type="number" id="rainfall" name="rainfall" step="any" required>
+                    <button type="button" id="get-rainfall-btn">Get Rainfall Automatically</button>
+                </div>
+        
+                <label for="humidity">Humidity (%):</label>
+                <div class="input-container">
+                    <input type="number" id="humidity" name="humidity" step="any" required>
+                    <button type="button" id="get-humidity-btn">Get Humidity Automatically</button>
+                </div>
+        
+                <label for="temperature">Temperature (°C):</label>
+                <div class="input-container">
+                    <input type="number" id="temperature" name="temperature" step="any" required>
+                    <button type="button" id="get-temp-btn">Get Temperature Automatically</button>
+                </div>
+        
+                <button type="submit">Submit</button>
+            </form>
+        </div>
+
+        <div id="result-page" class="page hidden">
+            <h2>Result</h2>
+            <p id="output-text"></p>
+            <figure>
+                <img id="fruit-image" src="" alt="" style="display:none; max-width: 100%; height: auto;" />
+                <figcaption id="fruit-caption"></figcaption>
+            </figure>
+            <div id="other-predictions"></div>
+            <button onclick="goToInputPage()">Try Again</button>
+        </div>
+        
+    </div>
+
+    <script src="static/script.js"></script>
+</body>
+</html>
